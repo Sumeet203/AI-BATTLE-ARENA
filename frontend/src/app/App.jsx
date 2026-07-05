@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import SolutionCard from '../components/SolutionCard'
 import JudgeCard from '../components/JudgeCard'
 import SkeletonLoader from '../components/SkeletonLoader'
+import axios from 'axios'
 
 /* ─── Mock data for demonstration ────────────────────────────── */
 const MOCK_RESPONSE = {
@@ -103,15 +104,18 @@ function App() {
 
     try {
       // Simulated delay (remove when connecting real backend)
+      const response = await axios.post("http://localhost:3000/invoke", { input: text });
+      const newData = response.data;
+      console.log(newData);
       await new Promise(resolve => setTimeout(resolve, 2200))
-      const data = { ...MOCK_RESPONSE, problem: question }
+      const data = { ...newData.data, problem: question }
 
-      setChatTurns(prev => prev.map(t => 
+      setChatTurns(prev => prev.map(t =>
         t.id === turnId ? { ...t, isGenerating: false, result: data } : t
       ))
     } catch (err) {
       console.error('Battle Arena error:', err)
-      setChatTurns(prev => prev.map(t => 
+      setChatTurns(prev => prev.map(t =>
         t.id === turnId ? { ...t, isGenerating: false, error: 'Failed to generate solutions.' } : t
       ))
     } finally {
@@ -150,7 +154,7 @@ function App() {
       {/* Main Chat Feed */}
       <main className="chat-feed">
         <div className="feed-container">
-          
+
           {/* Empty State */}
           {chatTurns.length === 0 && (
             <div className="empty-state">
@@ -209,7 +213,7 @@ function App() {
                     content={turn.result.solution_1}
                     isWinner={turn.result.judge.winner === 1}
                   />
-                  
+
                   <SolutionCard
                     title="Solution 2"
                     score={turn.result.judge.solution_2_score}
